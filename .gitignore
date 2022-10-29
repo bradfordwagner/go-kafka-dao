@@ -2,3 +2,4 @@ dist
 .idea
 coverprofile.out
 *.test
+mocks/
