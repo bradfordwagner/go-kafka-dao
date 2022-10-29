@@ -1,30 +1,27 @@
-package template
+package kafka_dao
 
-import "time"
+import "github.com/Shopify/sarama"
 
-// Config
+var defaultSaramaVersion = sarama.V2_8_0_0
+
+// Config - setup configuration for dao impl setup
 type Config struct {
-	numWorkers int
-	tick       time.Duration
+	brokers string
+	version sarama.KafkaVersion
 }
 
 type Option func(config *Config)
 
-func newDefaultConfig() *Config {
+func newDefaultConfig(brokers string) *Config {
 	return &Config{
-		numWorkers: 15,
-		tick:       time.Second * 5,
+		brokers: brokers,
+		version: defaultSaramaVersion,
 	}
 }
 
-func OptionWorkerRoutines(numWorkers int) Option {
+// OptionKafkaVersion - configure kafka version
+func OptionKafkaVersion(version sarama.KafkaVersion) Option {
 	return func(config *Config) {
-		config.numWorkers = numWorkers
-	}
-}
-
-func OptionTick(tick time.Duration) Option {
-	return func(config *Config) {
-		config.tick = tick
+		config.version = version
 	}
 }

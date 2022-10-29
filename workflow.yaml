@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: go-lib-
+  generateName: go-kafka-dao-
 spec:
   podGC:
     strategy: OnPodSuccess # delete pods when workflow is successful
@@ -27,7 +27,7 @@ spec:
         arguments:
           parameters:
           - name: git_repo
-            value: https://github.com/bradfordwagner/gh-template-go-lib.git
+            value: https://github.com/bradfordwagner/go-kafka-dao.git
           - name: git_version
             value: "{{ inputs.parameters.git_version }}"
           - name: upstream_repo
