@@ -1,7 +1,5 @@
 before:
   hooks:
-    - pwd
-    - ls -lh
     - make initialize
     - make test
 builds:
