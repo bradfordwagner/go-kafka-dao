@@ -4,16 +4,16 @@ install_binaries:
 generate_mocks:
 	go generate ./...
 
-initialize: install_binaries generate_mocks
+install: install_binaries generate_mocks
 
 clean:
-	@rm -rf ./dist
+	@rm -rf ./dist ./mocks
 
 test:
 	@go test ./...
 
 d: dev
-i: initialize
+i: install
 c: clean
 
 # watch / develop
