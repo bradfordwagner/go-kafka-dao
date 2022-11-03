@@ -28,6 +28,9 @@ type DAO interface {
 	// UpsertTopic - upserts a topic configuration to kafka. if some immutable fields have been changed then will return error
 	UpsertTopic(t TopicConfig) (err error)
 
+	// DeleteTopic - deletes a topic configuration from kafka
+	DeleteTopic(t TopicConfig) (err error)
+
 	AlterTopicRetentionMillis(topicName, retention string) (err error)
 	DeleteTopicLatestRecords(topicName string) (err error)
 	GetBrokerIDs() (brokerIds []int32, err error)
