@@ -5,6 +5,8 @@ github.com/bradfordwagner/go-util v0.6.0 h1:x90rwbtO0nekI47fPoLyIPcQci54M+/A8+SI
 github.com/bradfordwagner/go-util v0.6.0/go.mod h1:90+a0Owq8Imy55wIREAmU+QV4Oq09qPMTNEOmp2vI+w=
 github.com/bradfordwagner/go-util v0.7.0 h1:BsXqfOVo7coCk6UoSMekQdnNbvAPXUbuXccxMw66nlk=
 github.com/bradfordwagner/go-util v0.7.0/go.mod h1:90+a0Owq8Imy55wIREAmU+QV4Oq09qPMTNEOmp2vI+w=
+github.com/bradfordwagner/go-util v0.7.1 h1:P0J1waIKhdFmjTZp3zBBZl5npgQbqvewRRtRH/AlOS0=
+github.com/bradfordwagner/go-util v0.7.1/go.mod h1:90+a0Owq8Imy55wIREAmU+QV4Oq09qPMTNEOmp2vI+w=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

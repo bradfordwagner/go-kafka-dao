@@ -1,6 +1,7 @@
 package kafka_dao
 
 import (
+	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/bradfordwagner/go-kafka-dao/mocks/pkg/mock_sarama"
 	"github.com/golang/mock/gomock"
@@ -18,6 +19,7 @@ var _ = Describe("BuildAdminConnection", func() {
 
 	type args struct {
 		initialAdmin sarama.ClusterAdmin
+		returnError  error
 	}
 	type harness struct {
 		invocations *atomic.Int32
@@ -27,9 +29,9 @@ var _ = Describe("BuildAdminConnection", func() {
 		h := &harness{
 			invocations: atomic.NewInt32(0),
 		}
-		f := func() sarama.ClusterAdmin {
+		f := func(_ string, _ sarama.KafkaVersion) (sarama.ClusterAdmin, error) {
 			h.invocations.Inc()
-			return mock_sarama.NewMockClusterAdmin(ctrl)
+			return mock_sarama.NewMockClusterAdmin(ctrl), a.returnError
 		}
 		di := New("", OptionsAdminBuilder(f)).(*daoImpl)
 		di.admin.Set(a.initialAdmin)
@@ -42,7 +44,10 @@ var _ = Describe("BuildAdminConnection", func() {
 		h := stage(args{initialAdmin: admin})
 		Expect(h.invocations.Load()).To(Equal(int32(0)))
 		Expect(h.di.admin.Get()).To(Equal(admin))
-		h.di.buildAdminConnection()
+
+		err := h.di.buildAdminConnection()
+		Expect(err).ShouldNot(HaveOccurred())
+
 		Expect(h.invocations.Load()).To(Equal(int32(0)))
 		Expect(h.di.admin.Get()).To(Equal(admin))
 	})
@@ -50,13 +55,25 @@ var _ = Describe("BuildAdminConnection", func() {
 		h := stage(args{})
 		Expect(h.invocations.Load()).To(Equal(int32(0)))
 		Expect(h.di.admin.Get()).To(BeNil())
-		h.di.buildAdminConnection()
+
+		err := h.di.buildAdminConnection()
+		Expect(err).ShouldNot(HaveOccurred())
+
 		Expect(h.invocations.Load()).To(Equal(int32(1)))
 		Expect(h.di.admin.Get()).To(Not(BeNil()))
 
 		// invoking again does not load a new client
-		h.di.buildAdminConnection()
+		err = h.di.buildAdminConnection()
+		Expect(err).ShouldNot(HaveOccurred())
 		Expect(h.invocations.Load()).To(Equal(int32(1)))
 		Expect(h.di.admin.Get()).To(Not(BeNil()))
+	})
+
+	It("bubbles errors up", func() {
+		expectedError := errors.New("expectedERror")
+		h := stage(args{returnError: expectedError})
+
+		resError := h.di.buildAdminConnection()
+		Expect(resError).Should(Equal(expectedError))
 	})
 })

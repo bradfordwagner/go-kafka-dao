@@ -5,7 +5,7 @@ import "github.com/Shopify/sarama"
 var defaultSaramaVersion = sarama.V2_8_0_0
 
 // OptionAdminBuilderFunc -
-type OptionAdminBuilderFunc = func() sarama.ClusterAdmin
+type OptionAdminBuilderFunc = func(brokers string, version sarama.KafkaVersion) (sarama.ClusterAdmin, error)
 
 // config - setup configuration for dao impl setup
 type config struct {
