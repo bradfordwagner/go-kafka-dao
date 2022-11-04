@@ -1,6 +1,9 @@
 package kafka_dao
 
-import "github.com/Shopify/sarama"
+import (
+	"github.com/Shopify/sarama"
+	"strings"
+)
 
 var defaultSaramaVersion = sarama.V2_8_0_0
 
@@ -18,8 +21,9 @@ type Option func(config *config)
 
 func newDefaultConfig(brokers string) *config {
 	return &config{
-		brokers: brokers,
-		version: defaultSaramaVersion,
+		brokers:      brokers,
+		version:      defaultSaramaVersion,
+		adminBuilder: defaultAdminBuilderFunc,
 	}
 }
 
@@ -35,4 +39,11 @@ func OptionsAdminBuilder(f OptionAdminBuilderFunc) Option {
 	return func(config *config) {
 		config.adminBuilder = f
 	}
+}
+
+func defaultAdminBuilderFunc(brokers string, version sarama.KafkaVersion) (admin sarama.ClusterAdmin, err error) {
+	brokerArray := strings.Split(brokers, ",")
+	c := sarama.NewConfig()
+	c.Version = version
+	return sarama.NewClusterAdmin(brokerArray, c)
 }

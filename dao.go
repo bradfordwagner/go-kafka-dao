@@ -2,7 +2,7 @@ package kafka_dao
 
 import (
 	"github.com/Shopify/sarama"
-	bwutil "github.com/bradfordwagner/go-util"
+	"github.com/bradfordwagner/go-util"
 )
 
 // TopicConfig - configuration for upserting topics
@@ -14,15 +14,17 @@ type TopicConfig struct {
 		// retention time for topic in ms, default=none
 		RetentionMS string
 	}
-	ACLs struct {
-		// Whether or not to configure acls, if this is disabled then existing acls will be removed from this topic
-		Enabled     bool
-		Writes      []string
-		Reads       []string
-		IngressHost string
-		// appends to principal, eg add org and country to the Principal metadata
-		ExtraPrincipalInfo string
-	}
+	ACLs ACLs
+}
+
+type ACLs struct {
+	// Whether or not to configure acls, if this is disabled then existing acls will be removed from this topic
+	Enabled     bool
+	Writes      *bwutil.Set[string]
+	Reads       *bwutil.Set[string]
+	IngressHost string
+	// appends to principal, eg add org and country to the Principal metadata
+	ExtraPrincipalInfo string
 }
 
 // DAO - Data Access Object
@@ -30,7 +32,8 @@ type DAO interface {
 	// ListTopics - lists topic configurations including ACLs
 	//ListTopics() (tc map[string]TopicConfig, err error)
 
-	GetTopicConfig(topic string) (tc TopicConfig, err error)
+	GetTopicConfig(topic string) (exists bool, tc TopicConfig, err error)
+	GetTopicACLs(topic string) (acls ACLs, err error)
 
 	// UpsertTopic - upserts a topic configuration to kafka. if some immutable fields have been changed then will return error
 	//UpsertTopic(t TopicConfig) (err error)
