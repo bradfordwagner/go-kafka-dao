@@ -4,16 +4,20 @@ import "github.com/Shopify/sarama"
 
 var defaultSaramaVersion = sarama.V2_8_0_0
 
-// Config - setup configuration for dao impl setup
-type Config struct {
-	brokers string
-	version sarama.KafkaVersion
+// OptionAdminBuilderFunc -
+type OptionAdminBuilderFunc = func() sarama.ClusterAdmin
+
+// config - setup configuration for dao impl setup
+type config struct {
+	brokers      string
+	version      sarama.KafkaVersion
+	adminBuilder OptionAdminBuilderFunc
 }
 
-type Option func(config *Config)
+type Option func(config *config)
 
-func newDefaultConfig(brokers string) *Config {
-	return &Config{
+func newDefaultConfig(brokers string) *config {
+	return &config{
 		brokers: brokers,
 		version: defaultSaramaVersion,
 	}
@@ -21,7 +25,14 @@ func newDefaultConfig(brokers string) *Config {
 
 // OptionKafkaVersion - configure kafka version
 func OptionKafkaVersion(version sarama.KafkaVersion) Option {
-	return func(config *Config) {
+	return func(config *config) {
 		config.version = version
+	}
+}
+
+// OptionsAdminBuilder - helps to build the admin client also useful for mocking
+func OptionsAdminBuilder(f OptionAdminBuilderFunc) Option {
+	return func(config *config) {
+		config.adminBuilder = f
 	}
 }
