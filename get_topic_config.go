@@ -24,6 +24,7 @@ func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err err
 	if !ok {
 		return
 	}
+	tc.Partitions, tc.ReplicationFactor = int(details.NumPartitions), int(details.ReplicationFactor)
 
 	// parse to a map so in future other configurations can be parsed
 	topicConfig, err := d.admin.Get().DescribeConfig(sarama.ConfigResource{
@@ -36,8 +37,6 @@ func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err err
 		configs[entry.Name] = entry.Value
 	}
 	tc.Config.RetentionMS, _ = configs["retention.ms"]
-
-	tc.Partitions, tc.ReplicationFactor = int(details.NumPartitions), int(details.ReplicationFactor)
 
 	return
 }
