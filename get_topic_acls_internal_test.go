@@ -33,7 +33,7 @@ func (m *mockGetTopicACLs) GetTopicACLs(topic string) (acls ACLs, err error) {
 
 var _ GetTopicACLs = (*mockGetTopicACLs)(nil)
 
-var _ = FDescribe("GetTopicAcls", func() {
+var _ = Describe("GetTopicAcls", func() {
 	var topic = "hi_friends"
 	var ctrl *gomock.Controller
 	var admin *mock_sarama.MockClusterAdmin
@@ -165,7 +165,7 @@ var _ = FDescribe("GetTopicAcls", func() {
 		})
 	})
 
-	FIt("errors on write acls", func() {
+	It("errors on write acls", func() {
 		err := errors.New("expected")
 		test(args{
 			reads: argAcl{},
