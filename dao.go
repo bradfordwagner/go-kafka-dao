@@ -30,10 +30,9 @@ type ACLs struct {
 type DAO interface {
 	buildAdminConnection
 	GetTopicACLs
+	GetTopicConfig
 	// ListTopics - lists topic configurations including ACLs
 	//ListTopics() (tc map[string]TopicConfig, err error)
-
-	GetTopicConfig(topic string) (exists bool, tc TopicConfig, err error)
 
 	// UpsertTopic - upserts a topic configuration to kafka. if some immutable fields have been changed then will return error
 	//UpsertTopic(t TopicConfig) (err error)
@@ -51,6 +50,11 @@ type DAO interface {
 // GetTopicACLs - returns topic acls
 type GetTopicACLs interface {
 	GetTopicACLs(topic string) (acls ACLs, err error)
+}
+
+// GetTopicConfig - returns topic configuration
+type GetTopicConfig interface {
+	GetTopicConfig(topic string) (exists bool, tc TopicConfig, err error)
 }
 
 type buildAdminConnection interface {

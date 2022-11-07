@@ -3,12 +3,12 @@ package kafka_dao
 import "github.com/Shopify/sarama"
 
 func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err error) {
-	tc.Name = topic
 	// setup connection
 	err = d.buildAdminConnection()
 	if err != nil {
 		return
 	}
+	tc.Name = topic
 
 	tc.ACLs, err = d.GetTopicACLs(topic)
 	if err != nil {
