@@ -29,10 +29,23 @@ var _ = Describe("GetTopicAcls", func() {
 		ctrl.Finish()
 	})
 
+	It("fails to initialize an admin connection", func() {
+		err := errors.New("expected")
+		d.admin = bwutil.NewLockable[sarama.ClusterAdmin]() // force admin buidler function to run
+		d.config = newDefaultConfig("abcd")
+		d.config.adminBuilder = func(brokers string, version sarama.KafkaVersion) (sarama.ClusterAdmin, error) {
+			return nil, err
+		}
+		acls, resErr := d.GetTopicACLs(topic)
+		Expect(acls).Should(Equal(ACLs{}))
+		Expect(resErr).Should(Equal(err))
+	})
+
 	type argAcl struct {
 		v   []string
 		err error
 	}
+
 	type argRes struct {
 		acls ACLs
 		err  error
@@ -129,6 +142,7 @@ var _ = Describe("GetTopicAcls", func() {
 			},
 		})
 	})
+
 	It("errors on write acls", func() {
 		err := errors.New("expected")
 		test(args{

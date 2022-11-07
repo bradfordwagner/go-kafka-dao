@@ -28,6 +28,7 @@ type ACLs struct {
 
 // DAO - Data Access Object
 type DAO interface {
+	buildAdminConnection
 	GetTopicACLs
 	// ListTopics - lists topic configurations including ACLs
 	//ListTopics() (tc map[string]TopicConfig, err error)
@@ -52,6 +53,10 @@ type GetTopicACLs interface {
 	GetTopicACLs(topic string) (acls ACLs, err error)
 }
 
+type buildAdminConnection interface {
+	buildAdminConnection() (err error)
+}
+
 // New - Creates a new implementation of the kafka DAO
 func New(brokers string, options ...Option) DAO {
 	c := newDefaultConfig(brokers)
@@ -65,14 +70,16 @@ func New(brokers string, options ...Option) DAO {
 	}
 	// allows internal tests to override
 	self.getTopicACLs = self
+	self.buildAdminConn = self
 	return self
 }
 
 // daoImpl - implementation of the DAO interface
 type daoImpl struct {
-	config       *config
-	admin        *bwutil.Lockable[sarama.ClusterAdmin]
-	getTopicACLs GetTopicACLs
+	config         *config
+	admin          *bwutil.Lockable[sarama.ClusterAdmin]
+	getTopicACLs   GetTopicACLs
+	buildAdminConn buildAdminConnection
 }
 
 // enforce interface
