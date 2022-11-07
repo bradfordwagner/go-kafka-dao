@@ -10,11 +10,13 @@ type TopicConfig struct {
 	Name              string
 	Partitions        int
 	ReplicationFactor int
-	Config            struct {
-		// retention time for topic in ms, default=none
-		RetentionMS string
-	}
-	ACLs ACLs
+	Config            TopicConfigDetails
+	ACLs              ACLs
+}
+
+type TopicConfigDetails struct {
+	// retention time for topic in ms, default=none
+	RetentionMS string
 }
 
 type ACLs struct {
