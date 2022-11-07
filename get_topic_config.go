@@ -6,7 +6,6 @@ func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err err
 	if err != nil {
 		return
 	}
-	tc.Name = topic
 
 	tc.ACLs, err = d.getTopicACLs.GetTopicACLs(topic)
 	if err != nil {
@@ -22,6 +21,7 @@ func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err err
 	if !ok {
 		return
 	}
+	tc.Name = topic
 	tc.Partitions, tc.ReplicationFactor = int(details.NumPartitions), int(details.ReplicationFactor)
 
 	// Configuration details

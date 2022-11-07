@@ -48,14 +48,28 @@ var _ = Describe("GetTopicConfig", func() {
 	}
 
 	type argsListTopics struct {
-		topics []map[string]sarama.TopicDetail
+		topics map[string]sarama.TopicDetail
+		err    error
 	}
 	type args struct {
-		acls *mockGetTopicACLs
-		res  argsRes
+		acls       *mockGetTopicACLs
+		listTopics argsListTopics
+		res        argsRes
 	}
 	var test = func(a args) {
 		d.getTopicACLs = a.acls
+
+		init := func() {
+			if a.acls.err != nil {
+				return
+			}
+
+			admin.EXPECT().ListTopics().Return(a.listTopics.topics, a.listTopics.err)
+			if a.listTopics.err != nil {
+				return
+			}
+		}
+		init()
 
 		ok, tc, err := d.GetTopicConfig(topic)
 		Expect(ok).To(Equal(a.res.ok))
@@ -72,10 +86,91 @@ var _ = Describe("GetTopicConfig", func() {
 		test(args{
 			acls: newMockGetTopicACLs(
 				ACLs{},
-				nil,
+				err,
 			),
 			res: argsRes{
 				err: err,
+			},
+		})
+	})
+	It("fails to list topics", func() {
+		err := errors.New("expected")
+		test(args{
+			acls: newMockGetTopicACLs(
+				ACLs{},
+				nil,
+			),
+			listTopics: argsListTopics{
+				topics: nil,
+				err:    err,
+			},
+			res: argsRes{
+				err: err,
+			},
+		})
+	})
+	It("topic dne", func() {
+		test(args{
+			acls: newMockGetTopicACLs(
+				ACLs{
+					Enabled: false,
+					Writes:  nil,
+					Reads:   nil,
+				},
+				nil,
+			),
+			listTopics: argsListTopics{
+				topics: map[string]sarama.TopicDetail{},
+				err:    nil,
+			},
+			res: argsRes{
+				ok:  false,
+				tc:  TopicConfig{},
+				err: nil,
+			},
+		})
+	})
+
+	It("finds a topic and a config!", func() {
+		writeACLs := bwutil.NewSetFromSlice[string]([]string{"writes"})
+		readACLs := bwutil.NewSetFromSlice[string]([]string{"reads"})
+		test(args{
+			acls: newMockGetTopicACLs(
+				ACLs{
+					Enabled: true,
+					Writes:  writeACLs,
+					Reads:   readACLs,
+				},
+				nil,
+			),
+			listTopics: argsListTopics{
+				topics: map[string]sarama.TopicDetail{
+					topic: {
+						NumPartitions:     5,
+						ReplicationFactor: 3,
+						ConfigEntries: map[string]*string{
+							"retention.ms": bwutil.Pointer("12345"),
+						},
+					},
+				},
+				err: nil,
+			},
+			res: argsRes{
+				ok: true,
+				tc: TopicConfig{
+					Name:              topic,
+					Partitions:        5,
+					ReplicationFactor: 3,
+					Config: TopicConfigDetails{
+						RetentionMS: "12345",
+					},
+					ACLs: ACLs{
+						Enabled: true,
+						Reads:   readACLs,
+						Writes:  writeACLs,
+					},
+				},
+				err: nil,
 			},
 		})
 	})
