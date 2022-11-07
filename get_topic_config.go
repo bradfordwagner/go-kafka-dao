@@ -1,7 +1,5 @@
 package kafka_dao
 
-import "github.com/Shopify/sarama"
-
 func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err error) {
 	// setup connection
 	err = d.buildAdminConnection()
@@ -26,17 +24,11 @@ func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err err
 	}
 	tc.Partitions, tc.ReplicationFactor = int(details.NumPartitions), int(details.ReplicationFactor)
 
-	// parse to a map so in future other configurations can be parsed
-	topicConfig, err := d.admin.Get().DescribeConfig(sarama.ConfigResource{
-		Type:        sarama.TopicResource,
-		Name:        topic,
-		ConfigNames: []string{"retention.ms"},
-	})
-	configs := make(map[string]string, len(topicConfig))
-	for _, entry := range topicConfig {
-		configs[entry.Name] = entry.Value
+	// Configuration details
+	retentionMillis, hasRetentionMillis := details.ConfigEntries["retention.ms"]
+	if hasRetentionMillis {
+		tc.Config.RetentionMS = *retentionMillis
 	}
-	tc.Config.RetentionMS, _ = configs["retention.ms"]
 
 	return
 }
