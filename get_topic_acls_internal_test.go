@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("GetTopicAcls", func() {
+var _ = Describe("GetTopicAcls", func() {
 	var topic = "hi_friends"
 	var ctrl *gomock.Controller
 	var admin *mock_sarama.MockClusterAdmin
