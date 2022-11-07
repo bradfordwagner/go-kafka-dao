@@ -47,14 +47,6 @@ type DAO interface {
 	//GetTopicPartitions(topicName string) (partitions []int32, err error)
 }
 
-// daoImpl - implementation of the DAO interface
-type daoImpl struct {
-	config *config
-	admin  *bwutil.Lockable[sarama.ClusterAdmin]
-}
-
-var _ DAO = (*daoImpl)(nil)
-
 // New - Creates a new implementation of the kafka DAO
 func New(brokers string, options ...Option) DAO {
 	c := newDefaultConfig(brokers)
@@ -67,3 +59,12 @@ func New(brokers string, options ...Option) DAO {
 		admin:  bwutil.NewLockable[sarama.ClusterAdmin](),
 	}
 }
+
+// daoImpl - implementation of the DAO interface
+type daoImpl struct {
+	config *config
+	admin  *bwutil.Lockable[sarama.ClusterAdmin]
+}
+
+// enforce interface
+var _ DAO = (*daoImpl)(nil)
