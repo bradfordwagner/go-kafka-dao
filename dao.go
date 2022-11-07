@@ -28,11 +28,11 @@ type ACLs struct {
 
 // DAO - Data Access Object
 type DAO interface {
+	GetTopicACLs
 	// ListTopics - lists topic configurations including ACLs
 	//ListTopics() (tc map[string]TopicConfig, err error)
 
 	GetTopicConfig(topic string) (exists bool, tc TopicConfig, err error)
-	GetTopicACLs(topic string) (acls ACLs, err error)
 
 	// UpsertTopic - upserts a topic configuration to kafka. if some immutable fields have been changed then will return error
 	//UpsertTopic(t TopicConfig) (err error)
@@ -47,6 +47,11 @@ type DAO interface {
 	//GetTopicPartitions(topicName string) (partitions []int32, err error)
 }
 
+// GetTopicACLs - returns topic acls
+type GetTopicACLs interface {
+	GetTopicACLs(topic string) (acls ACLs, err error)
+}
+
 // New - Creates a new implementation of the kafka DAO
 func New(brokers string, options ...Option) DAO {
 	c := newDefaultConfig(brokers)
@@ -54,17 +59,29 @@ func New(brokers string, options ...Option) DAO {
 		option(c)
 	}
 
-	return &daoImpl{
+	self := &daoImpl{
 		config: c,
 		admin:  bwutil.NewLockable[sarama.ClusterAdmin](),
 	}
+	// allows internal tests to override
+	self.getTopicACLs = self
+	return self
 }
 
 // daoImpl - implementation of the DAO interface
 type daoImpl struct {
-	config *config
-	admin  *bwutil.Lockable[sarama.ClusterAdmin]
+	config       *config
+	admin        *bwutil.Lockable[sarama.ClusterAdmin]
+	getTopicACLs GetTopicACLs
 }
 
 // enforce interface
 var _ DAO = (*daoImpl)(nil)
+
+func newACLS() ACLs {
+	return ACLs{
+		Enabled: false,
+		Writes:  bwutil.NewSet[string](),
+		Reads:   bwutil.NewSet[string](),
+	}
+}
