@@ -19,12 +19,11 @@ type TopicConfig struct {
 
 type ACLs struct {
 	// Whether or not to configure acls, if this is disabled then existing acls will be removed from this topic
-	Enabled     bool
-	Writes      *bwutil.Set[string]
-	Reads       *bwutil.Set[string]
-	IngressHost string
-	// appends to principal, eg add org and country to the Principal metadata
-	ExtraPrincipalInfo string
+	Enabled bool
+	// Principals to allow Writes for
+	Writes *bwutil.Set[string]
+	// Principals to allow Reads for
+	Reads *bwutil.Set[string]
 }
 
 // DAO - Data Access Object
