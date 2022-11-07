@@ -2,13 +2,13 @@ package kafka_dao
 
 func (d *daoImpl) GetTopicConfig(topic string) (ok bool, tc TopicConfig, err error) {
 	// setup connection
-	err = d.buildAdminConnection()
+	err = d.buildAdminConn.buildAdminConnection()
 	if err != nil {
 		return
 	}
 	tc.Name = topic
 
-	tc.ACLs, err = d.GetTopicACLs(topic)
+	tc.ACLs, err = d.getTopicACLs.GetTopicACLs(topic)
 	if err != nil {
 		return
 	}

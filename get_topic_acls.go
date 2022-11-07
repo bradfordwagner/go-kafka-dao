@@ -7,7 +7,7 @@ import (
 
 func (d *daoImpl) GetTopicACLs(topic string) (acls ACLs, err error) {
 	// setup connection
-	err = d.buildAdminConnection()
+	err = d.buildAdminConn.buildAdminConnection()
 	if err != nil {
 		return
 	}

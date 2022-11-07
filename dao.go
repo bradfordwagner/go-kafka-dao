@@ -73,8 +73,8 @@ func New(brokers string, options ...Option) DAO {
 		admin:  bwutil.NewLockable[sarama.ClusterAdmin](),
 	}
 	// allows internal tests to override
-	self.getTopicACLs = self
 	self.buildAdminConn = self
+	self.getTopicACLs = self
 	return self
 }
 

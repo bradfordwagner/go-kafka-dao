@@ -8,9 +8,32 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/atomic"
 )
 
-var _ = Describe("GetTopicAcls", func() {
+// mockGetTopicACLs - used for testing other parts of the dao which invoke get topic acls
+type mockGetTopicACLs struct {
+	invoked *atomic.Int32
+	acls    ACLs
+	err     error
+}
+
+func newMockGetTopicACLs(acls ACLs, err error) *mockGetTopicACLs {
+	return &mockGetTopicACLs{
+		invoked: atomic.NewInt32(0),
+		acls:    acls,
+		err:     err,
+	}
+}
+
+func (m *mockGetTopicACLs) GetTopicACLs(topic string) (acls ACLs, err error) {
+	m.invoked.Inc()
+	return m.acls, m.err
+}
+
+var _ GetTopicACLs = (*mockGetTopicACLs)(nil)
+
+var _ = FDescribe("GetTopicAcls", func() {
 	var topic = "hi_friends"
 	var ctrl *gomock.Controller
 	var admin *mock_sarama.MockClusterAdmin
@@ -18,10 +41,9 @@ var _ = Describe("GetTopicAcls", func() {
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 		admin = mock_sarama.NewMockClusterAdmin(ctrl)
-		d = &daoImpl{
-			config: nil,
-			admin:  bwutil.NewLockableWithValue[sarama.ClusterAdmin](admin),
-		}
+		dg := New("brokers")
+		d = dg.(*daoImpl)
+		d.admin = bwutil.NewLockableWithValue[sarama.ClusterAdmin](admin)
 	})
 	AfterEach(func() {
 		Expect(admin).ShouldNot(BeNil())
@@ -143,7 +165,7 @@ var _ = Describe("GetTopicAcls", func() {
 		})
 	})
 
-	It("errors on write acls", func() {
+	FIt("errors on write acls", func() {
 		err := errors.New("expected")
 		test(args{
 			reads: argAcl{},
