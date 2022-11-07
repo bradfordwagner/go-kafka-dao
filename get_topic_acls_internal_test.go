@@ -1,9 +1,10 @@
 package kafka_dao
 
 import (
+	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/bradfordwagner/go-kafka-dao/mocks/pkg/mock_sarama"
-	bwutil "github.com/bradfordwagner/go-util"
+	"github.com/bradfordwagner/go-util"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -68,14 +69,17 @@ var _ = FDescribe("GetTopicAcls", func() {
 			ResourcePatternTypeFilter: sarama.AclPatternLiteral,
 			PermissionType:            sarama.AclPermissionAllow,
 		}).Return(convertToResourceACLS(a.reads.v), a.reads.err)
-		admin.EXPECT().ListAcls(sarama.AclFilter{
-			ResourceName: bwutil.Pointer(topic),
-			// Operation is the diff between this and prev
-			Operation:                 sarama.AclOperationWrite,
-			ResourceType:              sarama.AclResourceTopic,
-			ResourcePatternTypeFilter: sarama.AclPatternLiteral,
-			PermissionType:            sarama.AclPermissionAllow,
-		}).Return(convertToResourceACLS(a.writes.v), a.writes.err)
+
+		if a.reads.err == nil {
+			admin.EXPECT().ListAcls(sarama.AclFilter{
+				ResourceName: bwutil.Pointer(topic),
+				// Operation is the diff between this and prev
+				Operation:                 sarama.AclOperationWrite,
+				ResourceType:              sarama.AclResourceTopic,
+				ResourcePatternTypeFilter: sarama.AclPatternLiteral,
+				PermissionType:            sarama.AclPermissionAllow,
+			}).Return(convertToResourceACLS(a.writes.v), a.writes.err)
+		}
 
 		// run it and check
 		acls, err := d.GetTopicACLs(topic)
@@ -95,4 +99,48 @@ var _ = FDescribe("GetTopicAcls", func() {
 		})
 	})
 
+	It("has read but not write", func() {
+		acls := newACLS()
+		acls.Enabled = true
+		acls.Reads.Add("hi friends")
+		test(args{
+			reads: argAcl{
+				v:   []string{"hi friends"},
+				err: nil,
+			},
+			writes: argAcl{},
+			res: argRes{
+				acls: acls,
+			},
+		})
+	})
+
+	It("errors on read acls", func() {
+		err := errors.New("expected")
+		test(args{
+			reads: argAcl{
+				v:   []string{},
+				err: err,
+			},
+			writes: argAcl{},
+			res: argRes{
+				acls: ACLs{},
+				err:  err,
+			},
+		})
+	})
+	It("errors on write acls", func() {
+		err := errors.New("expected")
+		test(args{
+			reads: argAcl{},
+			writes: argAcl{
+				v:   []string{},
+				err: err,
+			},
+			res: argRes{
+				acls: ACLs{},
+				err:  err,
+			},
+		})
+	})
 })
