@@ -1,6 +1,7 @@
 package kafka_dao
 
 import (
+	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/bradfordwagner/go-util"
 	. "github.com/onsi/ginkgo/v2"
@@ -13,10 +14,16 @@ var _ = Describe("TopicConfigUtil", func() {
 		type args struct {
 			orig, target TopicConfig
 			isBreaking   bool
+			errs         string
 		}
 		var test = func(a args) {
-			isBreaking := checkBreakingChange(a.orig, a.target)
+			isBreaking, err := a.orig.checkBreakingChange(a.target)
 			Expect(isBreaking).To(Equal(a.isBreaking))
+			if a.errs == "" {
+				Expect(err).ShouldNot(HaveOccurred())
+			} else {
+				Expect(err).To(Equal(errors.New(a.errs)))
+			}
 		}
 		It("has different replication factor - breaks", func() {
 			test(args{
@@ -35,6 +42,7 @@ var _ = Describe("TopicConfigUtil", func() {
 					ACLs:              ACLs{},
 				},
 				isBreaking: true,
+				errs:       "topic=t1 contains breaking changes (target!=orig): replication_factor 1!=2",
 			})
 		})
 		It("has different num partitions - breaks", func() {
@@ -54,6 +62,7 @@ var _ = Describe("TopicConfigUtil", func() {
 					ACLs:              ACLs{},
 				},
 				isBreaking: true,
+				errs:       "topic=t1 contains breaking changes (target!=orig): partitions 1!=3",
 			})
 		})
 		It("has different acls - passes", func() {
@@ -77,6 +86,31 @@ var _ = Describe("TopicConfigUtil", func() {
 					},
 				},
 				isBreaking: false,
+				errs:       "",
+			})
+		})
+		It("has multiple failures - fails", func() {
+			test(args{
+				orig: TopicConfig{
+					Name:              "t1",
+					Partitions:        1,
+					ReplicationFactor: 1,
+					Config: TopicConfigDetails{
+						RetentionMS: "10",
+					},
+					ACLs: ACLs{},
+				},
+				target: TopicConfig{
+					Name:              "t1",
+					Partitions:        2,
+					ReplicationFactor: 2,
+					Config: TopicConfigDetails{
+						RetentionMS: "100",
+					},
+					ACLs: ACLs{},
+				},
+				isBreaking: true,
+				errs:       "topic=t1 contains breaking changes (target!=orig): replication_factor 2!=1,partitions 2!=1",
 			})
 		})
 		It("has different retention - passes", func() {
@@ -100,6 +134,7 @@ var _ = Describe("TopicConfigUtil", func() {
 					ACLs: ACLs{},
 				},
 				isBreaking: false,
+				errs:       "",
 			})
 		})
 	})
@@ -152,7 +187,6 @@ var _ = Describe("TopicConfigUtil", func() {
 				},
 			})
 		})
-
 	})
 
 })
