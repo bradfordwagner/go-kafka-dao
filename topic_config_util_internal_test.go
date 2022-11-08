@@ -1,6 +1,8 @@
 package kafka_dao
 
 import (
+	"github.com/Shopify/sarama"
+	"github.com/bradfordwagner/go-util"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -100,6 +102,57 @@ var _ = Describe("TopicConfigUtil", func() {
 				isBreaking: false,
 			})
 		})
+	})
+
+	Context("ConvertToSaramaTopicDetails", func() {
+		type args struct {
+			tc TopicConfig
+			td *sarama.TopicDetail
+		}
+		var test = func(a args) {
+			Expect(a.tc.ConvertToSaramaTopicDetails()).To(Equal(a.td))
+		}
+		It("has retention set", func() {
+			test(args{
+				tc: TopicConfig{
+					Name:              "t1",
+					Partitions:        3,
+					ReplicationFactor: 2,
+					Config: TopicConfigDetails{
+						RetentionMS: "1",
+					},
+					// doesn't care about acls
+					ACLs: ACLs{},
+				},
+				td: &sarama.TopicDetail{
+					NumPartitions:     3,
+					ReplicationFactor: 2,
+					ReplicaAssignment: nil,
+					ConfigEntries: map[string]*string{
+						"retention.ms": bwutil.Pointer("1"),
+					},
+				},
+			})
+		})
+		It("has no retention set", func() {
+			test(args{
+				tc: TopicConfig{
+					Name:              "t1",
+					Partitions:        3,
+					ReplicationFactor: 2,
+					Config:            TopicConfigDetails{},
+					// doesn't care about acls
+					ACLs: ACLs{},
+				},
+				td: &sarama.TopicDetail{
+					NumPartitions:     3,
+					ReplicationFactor: 2,
+					ReplicaAssignment: nil,
+					ConfigEntries:     map[string]*string{},
+				},
+			})
+		})
+
 	})
 
 })
