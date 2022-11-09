@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("ReconcileAcls", func() {
+var _ = Describe("ReconcileAcls", func() {
 	var ctrl *gomock.Controller
 	BeforeEach(func() { ctrl = gomock.NewController(GinkgoT()) })
 	AfterEach(func() { ctrl.Finish() })
@@ -49,7 +49,7 @@ var _ = FDescribe("ReconcileAcls", func() {
 				}
 			}
 			return
-		})).Times(len(r.acls))
+		})).AnyTimes() // this invocation is batches, hard to tell how many calls we will have
 
 		admin.EXPECT().DeleteACL(bwutil.NewMatcherConversionOneOf(r.deleteFilters, func(aclFilter sarama.AclFilter) deleteFilter {
 			return deleteFilter{
@@ -98,6 +98,119 @@ var _ = FDescribe("ReconcileAcls", func() {
 				},
 			},
 			deleteFilters: nil,
+		})
+		test(args{
+			orig: TopicConfig{
+				ACLs: newACLS(),
+			},
+			target: TopicConfig{
+				Name:              "my_topic",
+				Partitions:        3,
+				ReplicationFactor: 1,
+				Config: TopicConfigDetails{
+					RetentionMS: "10",
+				},
+				ACLs: ACLs{
+					Reads:  bwutil.NewSetFromSlice([]string{"read1.test.com"}),
+					Writes: bwutil.NewSetFromSlice([]string{"write1.test.com"}),
+				},
+			},
+		}, res{
+			acls: []aclType{
+				{
+					op: sarama.AclOperationWrite,
+					rt: sarama.AclResourceTopic,
+					p:  "write1.test.com",
+				},
+				{
+					op: sarama.AclOperationRead,
+					rt: sarama.AclResourceTopic,
+					p:  "read1.test.com",
+				},
+				{
+					op: sarama.AclOperationRead,
+					rt: sarama.AclResourceGroup,
+					p:  "read1.test.com",
+				},
+			},
+			deleteFilters: nil,
+		})
+	})
+	It("is an existing topic", func() {
+		// has no acls
+		test(args{
+			orig: TopicConfig{
+				ACLs: ACLs{
+					Writes: bwutil.NewSetFromSlice([]string{}),
+					Reads:  bwutil.NewSetFromSlice([]string{}),
+				},
+			},
+			target: TopicConfig{
+				Name:              "my_topic",
+				Partitions:        3,
+				ReplicationFactor: 1,
+				Config: TopicConfigDetails{
+					RetentionMS: "10",
+				},
+				ACLs: ACLs{
+					Reads:  bwutil.NewSetFromSlice([]string{"read1.test.com"}),
+					Writes: bwutil.NewSetFromSlice([]string{"write1.test.com"}),
+				},
+			},
+		}, res{
+			acls: []aclType{
+				{
+					op: sarama.AclOperationWrite,
+					rt: sarama.AclResourceTopic,
+					p:  "write1.test.com",
+				},
+				{
+					op: sarama.AclOperationRead,
+					rt: sarama.AclResourceTopic,
+					p:  "read1.test.com",
+				},
+				{
+					op: sarama.AclOperationRead,
+					rt: sarama.AclResourceGroup,
+					p:  "read1.test.com",
+				},
+			},
+			deleteFilters: nil,
+		})
+		// swaps write1 for write2 acl, keeps read1
+		test(args{
+			orig: TopicConfig{
+				ACLs: ACLs{
+					Reads:  bwutil.NewSetFromSlice([]string{"read1.test.com"}),
+					Writes: bwutil.NewSetFromSlice([]string{"write1.test.com"}),
+				},
+			},
+			target: TopicConfig{
+				Name:              "my_topic",
+				Partitions:        3,
+				ReplicationFactor: 1,
+				Config: TopicConfigDetails{
+					RetentionMS: "10",
+				},
+				ACLs: ACLs{
+					Reads:  bwutil.NewSetFromSlice([]string{"read1.test.com"}),
+					Writes: bwutil.NewSetFromSlice([]string{"write2.test.com"}),
+				},
+			},
+		}, res{
+			acls: []aclType{
+				{
+					op: sarama.AclOperationWrite,
+					rt: sarama.AclResourceTopic,
+					p:  "write2.test.com",
+				},
+			},
+			deleteFilters: []deleteFilter{
+				{
+					op: sarama.AclOperationWrite,
+					p:  "write1.test.com",
+				},
+			},
 		})
 	})
 
