@@ -100,3 +100,19 @@ func convertToSaramaResourceACLs(topic string, set *bwutil.Set[string], t aclTyp
 
 	return
 }
+
+// convertToSaramaDeleteAclsFilter - helps to create all of the acls required in order to delete read/write acls from a given topic
+func convertToSaramaDeleteAclsFilter(topic string, set *bwutil.Set[string], operation sarama.AclOperation) (res []sarama.AclFilter) {
+	for _, principal := range set.Keyset() {
+		aclFilter := sarama.AclFilter{
+			ResourceName:              bwutil.Pointer(topic),
+			Operation:                 operation,
+			ResourceType:              sarama.AclResourceTopic,
+			ResourcePatternTypeFilter: sarama.AclPatternLiteral,
+			PermissionType:            sarama.AclPermissionAllow,
+			Principal:                 bwutil.Pointer(principal),
+		}
+		res = append(res, aclFilter)
+	}
+	return
+}

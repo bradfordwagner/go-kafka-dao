@@ -203,7 +203,7 @@ var _ = Describe("TopicConfigUtil", func() {
 			res := convertToSaramaResourceACLs(a.topic, p, a.t)
 			Expect(res).To(BeEquivalentTo(r.acls))
 		}
-		FIt("creates write acls", func() {
+		It("creates write acls", func() {
 			test(args{
 				topic:      "test_topic",
 				principals: []string{"write1.test.com"},
@@ -284,6 +284,63 @@ var _ = Describe("TopicConfigUtil", func() {
 				t:          aclTypeRead,
 			}, res{
 				acls: nil,
+			})
+		})
+	})
+
+	Context("convertToSaramaDeleteAclsFilter", func() {
+		type args struct {
+			topic      string
+			principals []string
+			op         sarama.AclOperation
+		}
+		type res struct {
+			filters []sarama.AclFilter
+		}
+		var test = func(a args, r res) {
+			res := convertToSaramaDeleteAclsFilter(a.topic, bwutil.NewSetFromSlice(a.principals), a.op) // invoke function
+			Expect(res).To(BeEquivalentTo(r.filters))
+		}
+		It("creates acl filters", func() {
+			test(args{
+				topic:      "test_topic",
+				principals: []string{"write.test.com"},
+				op:         sarama.AclOperationWrite,
+			}, res{
+				filters: []sarama.AclFilter{
+					{
+						ResourceName:              bwutil.Pointer("test_topic"),
+						Operation:                 sarama.AclOperationWrite,
+						ResourceType:              sarama.AclResourceTopic,
+						ResourcePatternTypeFilter: sarama.AclPatternLiteral,
+						PermissionType:            sarama.AclPermissionAllow,
+						Principal:                 bwutil.Pointer("write.test.com"),
+					},
+				},
+			})
+			test(args{
+				topic:      "test_topic",
+				principals: []string{"read1.test.com"},
+				op:         sarama.AclOperationRead,
+			}, res{
+				filters: []sarama.AclFilter{
+					{
+						ResourceName:              bwutil.Pointer("test_topic"),
+						Operation:                 sarama.AclOperationRead,
+						ResourceType:              sarama.AclResourceTopic,
+						ResourcePatternTypeFilter: sarama.AclPatternLiteral,
+						PermissionType:            sarama.AclPermissionAllow,
+						Principal:                 bwutil.Pointer("read1.test.com"),
+					},
+				},
+			})
+
+			// empty principals - no filters
+			test(args{
+				topic:      "test_topic",
+				principals: []string{},
+			}, res{
+				filters: nil,
 			})
 		})
 	})
