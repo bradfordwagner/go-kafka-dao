@@ -113,9 +113,8 @@ var _ = Describe("GetTopicConfig", func() {
 		test(args{
 			acls: newMockGetTopicACLs(
 				ACLs{
-					Enabled: false,
-					Writes:  nil,
-					Reads:   nil,
+					Writes: nil,
+					Reads:  nil,
 				},
 				nil,
 			),
@@ -137,9 +136,8 @@ var _ = Describe("GetTopicConfig", func() {
 		test(args{
 			acls: newMockGetTopicACLs(
 				ACLs{
-					Enabled: true,
-					Writes:  writeACLs,
-					Reads:   readACLs,
+					Writes: writeACLs,
+					Reads:  readACLs,
 				},
 				nil,
 			),
@@ -165,9 +163,8 @@ var _ = Describe("GetTopicConfig", func() {
 						RetentionMS: "12345",
 					},
 					ACLs: ACLs{
-						Enabled: true,
-						Reads:   readACLs,
-						Writes:  writeACLs,
+						Reads:  readACLs,
+						Writes: writeACLs,
 					},
 				},
 				err: nil,

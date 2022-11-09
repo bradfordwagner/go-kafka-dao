@@ -1,6 +1,6 @@
 before:
   hooks:
-    - make initialize
+    - make install
     - make test
 builds:
 - skip: true

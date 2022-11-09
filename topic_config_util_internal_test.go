@@ -72,18 +72,14 @@ var _ = Describe("TopicConfigUtil", func() {
 					Partitions:        3,
 					ReplicationFactor: 2,
 					Config:            TopicConfigDetails{},
-					ACLs: ACLs{
-						Enabled: true,
-					},
+					ACLs:              ACLs{},
 				},
 				target: TopicConfig{
 					Name:              "t1",
 					Partitions:        3,
 					ReplicationFactor: 2,
 					Config:            TopicConfigDetails{},
-					ACLs: ACLs{
-						Enabled: false,
-					},
+					ACLs:              ACLs{},
 				},
 				isBreaking: false,
 				errs:       "",

@@ -23,7 +23,6 @@ func (d *daoImpl) GetTopicACLs(topic string) (acls ACLs, err error) {
 	}
 
 	// setup the results
-	acls.Enabled = !readACLs.IsEmpty() || !writeACLs.IsEmpty() // if either acl is present then acls are enabled
 	acls.Reads, acls.Writes = readACLs, writeACLs
 
 	return

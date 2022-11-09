@@ -136,7 +136,6 @@ var _ = Describe("GetTopicAcls", func() {
 
 	It("has read but not write", func() {
 		acls := newACLS()
-		acls.Enabled = true
 		acls.Reads.Add("hi friends")
 		test(args{
 			reads: argAcl{

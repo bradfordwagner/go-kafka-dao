@@ -20,8 +20,6 @@ type TopicConfigDetails struct {
 }
 
 type ACLs struct {
-	// Whether or not to configure acls, if this is disabled then existing acls will be removed from this topic
-	Enabled bool
 	// Principals to allow Writes for
 	Writes *bwutil.Set[string]
 	// Principals to allow Reads for
@@ -101,8 +99,7 @@ var _ DAO = (*daoImpl)(nil)
 
 func newACLS() ACLs {
 	return ACLs{
-		Enabled: false,
-		Writes:  bwutil.NewSet[string](),
-		Reads:   bwutil.NewSet[string](),
+		Writes: bwutil.NewSet[string](),
+		Reads:  bwutil.NewSet[string](),
 	}
 }
