@@ -4,8 +4,8 @@ import "github.com/Shopify/sarama"
 
 func (d *daoImpl) reconcileACLs(orig, target TopicConfig) (err error) {
 	// assume admin conn has been built
-	//deleteReads := orig.ACLs.Reads.Difference(target.ACLs.Reads)
-	//deleteWrites := orig.ACLs.Writes.Difference(target.ACLs.Writes)
+	deleteReads := convertToSaramaDeleteAclsFilter(target.Name, orig.ACLs.Reads.Difference(target.ACLs.Reads), sarama.AclOperationRead)
+	deleteWrites := convertToSaramaDeleteAclsFilter(target.Name, orig.ACLs.Writes.Difference(target.ACLs.Writes), sarama.AclOperationWrite)
 	createReads := convertToSaramaResourceACLs(target.Name, target.ACLs.Reads.Difference(orig.ACLs.Reads), aclTypeRead)
 	createWrites := convertToSaramaResourceACLs(target.Name, target.ACLs.Writes.Difference(orig.ACLs.Writes), aclTypeWrite)
 
@@ -17,8 +17,15 @@ func (d *daoImpl) reconcileACLs(orig, target TopicConfig) (err error) {
 		}
 	}
 
-	//oldACLFilter := sarama.AclFilter{ResourceName: &topic.Name, Operation: operation, ResourceType: sarama.AclResourceTopic, ResourcePatternTypeFilter: sarama.AclPatternLiteral, PermissionType: sarama.AclPermissionAllow, Principal: &oldACL}
-	//_, err = admin.DeleteACL(oldACLFilter, false)
+	delete := [][]sarama.AclFilter{deleteReads, deleteWrites}
+	for _, filters := range delete {
+		for _, filter := range filters {
+			_, err = d.admin.Get().DeleteACL(filter, false)
+			if err != nil {
+				return
+			}
+		}
+	}
 
 	return
 }
