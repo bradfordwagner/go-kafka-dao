@@ -44,3 +44,59 @@ func (tcd TopicConfigDetails) ToConfigMap() map[string]*string {
 	}
 	return configEntries
 }
+
+type aclType int
+
+const (
+	aclTypeRead aclType = iota
+	aclTypeWrite
+)
+
+func convertToSaramaResourceACLs(topic string, set *bwutil.Set[string], t aclType) (res []*sarama.ResourceAcls) {
+	if set.IsEmpty() {
+		return
+	}
+
+	op := sarama.AclOperationWrite
+	resourceTypes := []sarama.AclResourceType{sarama.AclResourceTopic}
+	if aclTypeRead == t {
+		op = sarama.AclOperationRead
+		// set the extra resource type for reads - this will create the acl for resource group
+		resourceTypes = append(resourceTypes, sarama.AclResourceGroup)
+	}
+
+	// create base acl op
+	var acls []*sarama.Acl
+	for _, k := range set.Keyset() {
+		acl := &sarama.Acl{
+			Principal:      k,
+			Host:           "*",
+			Operation:      op,
+			PermissionType: sarama.AclPermissionAllow,
+		}
+		acls = append(acls, acl)
+	}
+
+	// create resource types
+	// for reads we need acl resource groups set - for consumer groups
+	// for reads/writes need to grant access to topic resource for op type
+	for _, resourceType := range resourceTypes {
+		rn := topic
+		if resourceType == sarama.AclResourceGroup {
+			rn = "*"
+		}
+
+		r := sarama.Resource{
+			ResourceType:        resourceType,
+			ResourceName:        rn,
+			ResourcePatternType: sarama.AclPatternLiteral,
+		}
+
+		res = append(res, &sarama.ResourceAcls{
+			Resource: r,
+			Acls:     acls,
+		})
+	}
+
+	return
+}

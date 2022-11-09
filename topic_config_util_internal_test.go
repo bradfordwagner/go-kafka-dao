@@ -189,4 +189,103 @@ var _ = Describe("TopicConfigUtil", func() {
 		})
 	})
 
+	Context("convertToSaramaResourceACLs", func() {
+		type args struct {
+			topic      string
+			principals []string
+			t          aclType
+		}
+		type res struct {
+			acls []*sarama.ResourceAcls
+		}
+		var test = func(a args, r res) {
+			p := bwutil.NewSetFromSlice(a.principals)
+			res := convertToSaramaResourceACLs(a.topic, p, a.t)
+			Expect(res).To(BeEquivalentTo(r.acls))
+		}
+		FIt("creates write acls", func() {
+			test(args{
+				topic:      "test_topic",
+				principals: []string{"write1.test.com"},
+				t:          aclTypeWrite,
+			}, res{
+				acls: []*sarama.ResourceAcls{
+					{
+						Resource: sarama.Resource{
+							ResourceType:        sarama.AclResourceTopic,
+							ResourceName:        "test_topic",
+							ResourcePatternType: sarama.AclPatternLiteral,
+						},
+						Acls: []*sarama.Acl{
+							{
+								Principal:      "write1.test.com",
+								Host:           "*",
+								Operation:      sarama.AclOperationWrite,
+								PermissionType: sarama.AclPermissionAllow,
+							},
+						},
+					},
+				},
+			})
+
+			// no inputs no acls
+			test(args{
+				topic:      "test_topic",
+				principals: []string{},
+				t:          aclTypeWrite,
+			}, res{
+				acls: nil,
+			})
+		})
+		It("creates read acls", func() {
+			test(args{
+				topic:      "test_topic",
+				principals: []string{"read1.test.com"},
+				t:          aclTypeRead,
+			}, res{
+				acls: []*sarama.ResourceAcls{
+					{
+						Resource: sarama.Resource{
+							ResourceType:        sarama.AclResourceTopic,
+							ResourceName:        "test_topic",
+							ResourcePatternType: sarama.AclPatternLiteral,
+						},
+						Acls: []*sarama.Acl{
+							{
+								Principal:      "read1.test.com",
+								Host:           "*",
+								Operation:      sarama.AclOperationRead,
+								PermissionType: sarama.AclPermissionAllow,
+							},
+						},
+					},
+					{
+						Resource: sarama.Resource{
+							ResourceType:        sarama.AclResourceGroup,
+							ResourceName:        "*",
+							ResourcePatternType: sarama.AclPatternLiteral,
+						},
+						Acls: []*sarama.Acl{
+							{
+								Principal:      "read1.test.com",
+								Host:           "*",
+								Operation:      sarama.AclOperationRead,
+								PermissionType: sarama.AclPermissionAllow,
+							},
+						},
+					},
+				},
+			})
+
+			// no inputs no acls
+			test(args{
+				topic:      "test_topic",
+				principals: []string{},
+				t:          aclTypeRead,
+			}, res{
+				acls: nil,
+			})
+		})
+	})
+
 })
