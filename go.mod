@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/bradfordwagner/go-util v0.11.1 // indirect
+	github.com/bradfordwagner/go-util v0.12.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
