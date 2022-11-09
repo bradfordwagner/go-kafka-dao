@@ -29,5 +29,10 @@ func (d *daoImpl) UpsertTopic(t TopicConfig) (err error) {
 		return
 	}
 
+	err = d.reconcileACLsComponent.reconcileACLs(existingConfig, t)
+	if err != nil {
+		return
+	}
+
 	return
 }

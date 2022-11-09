@@ -33,11 +33,12 @@ type DAO interface {
 	buildAdminConnection
 	GetTopicACLs
 	GetTopicConfig
+	reconcileACLs
 	// ListTopics - lists topic configurations including ACLs
 	//ListTopics() (tc map[string]TopicConfig, err error)
 
 	// UpsertTopic - upserts a topic configuration to kafka. if some immutable fields have been changed then will return error
-	//UpsertTopic(t TopicConfig) (err error)
+	UpsertTopic(t TopicConfig) (err error)
 
 	// DeleteTopic - deletes a topic configuration from kafka
 	//DeleteTopic(t TopicConfig) (err error)
@@ -59,8 +60,13 @@ type GetTopicConfig interface {
 	GetTopicConfig(topic string) (exists bool, tc TopicConfig, err error)
 }
 
+// buildAdminConnection - sets up the admin connection to kafka
 type buildAdminConnection interface {
 	buildAdminConnection() (err error)
+}
+
+type reconcileACLs interface {
+	reconcileACLs(orig, target TopicConfig) (err error)
 }
 
 // New - Creates a new implementation of the kafka DAO
@@ -77,15 +83,17 @@ func New(brokers string, options ...Option) DAO {
 	// allows internal tests to override
 	self.buildAdminConn = self
 	self.getTopicACLs = self
+	self.reconcileACLsComponent = self
 	return self
 }
 
 // daoImpl - implementation of the DAO interface
 type daoImpl struct {
-	config         *config
-	admin          *bwutil.Lockable[sarama.ClusterAdmin]
-	getTopicACLs   GetTopicACLs
-	buildAdminConn buildAdminConnection
+	config                 *config
+	admin                  *bwutil.Lockable[sarama.ClusterAdmin]
+	getTopicACLs           GetTopicACLs
+	buildAdminConn         buildAdminConnection
+	reconcileACLsComponent reconcileACLs
 }
 
 // enforce interface
