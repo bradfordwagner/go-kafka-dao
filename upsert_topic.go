@@ -12,13 +12,14 @@ func (d *daoImpl) UpsertTopic(t TopicConfig) (err error) {
 		return err
 	}
 
-	ok, existingConfig, err := d.GetTopicConfig(t.Name)
+	ok, existingConfig, err := d.getTopicConfigComponent.GetTopicConfig(t.Name)
 	if err != nil {
 		return
 	}
 
 	isBreaking, err := existingConfig.checkBreakingChange(t)
 	if ok && isBreaking {
+		// error set by checking breaking change - gives details
 		return
 	} else if !ok {
 		err = d.admin.Get().CreateTopic(t.Name, t.ConvertToSaramaTopicDetails(), false)

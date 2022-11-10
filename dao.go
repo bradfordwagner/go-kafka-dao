@@ -82,16 +82,18 @@ func New(brokers string, options ...Option) DAO {
 	self.buildAdminConn = self
 	self.getTopicACLs = self
 	self.reconcileACLsComponent = self
+	self.getTopicConfigComponent = self
 	return self
 }
 
 // daoImpl - implementation of the DAO interface
 type daoImpl struct {
-	config                 *config
-	admin                  *bwutil.Lockable[sarama.ClusterAdmin]
-	getTopicACLs           GetTopicACLs
-	buildAdminConn         buildAdminConnection
-	reconcileACLsComponent reconcileACLs
+	config                  *config
+	admin                   *bwutil.Lockable[sarama.ClusterAdmin]
+	getTopicACLs            GetTopicACLs
+	buildAdminConn          buildAdminConnection
+	reconcileACLsComponent  reconcileACLs
+	getTopicConfigComponent GetTopicConfig
 }
 
 // enforce interface
