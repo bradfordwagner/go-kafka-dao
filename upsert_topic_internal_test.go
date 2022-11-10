@@ -20,9 +20,6 @@ var _ = Describe("UpsertTopic", func() {
 	type resAlterConfig struct {
 		err error
 	}
-	type resReconcileAcls struct {
-		err error
-	}
 	type res struct {
 		getTopic      *mockGetTopicConfig
 		createTopic   resCreateTopic
