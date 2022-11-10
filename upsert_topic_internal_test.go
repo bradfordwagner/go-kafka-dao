@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("UpsertTopic", func() {
+var _ = Describe("UpsertTopic", func() {
 	type args struct {
 		tc TopicConfig
 	}
@@ -54,7 +54,6 @@ var _ = FDescribe("UpsertTopic", func() {
 			} else {
 				admin.EXPECT().AlterConfig(sarama.TopicResource, a.tc.Name, gomock.Any(), false).Return(r.alterConfig.err)
 			}
-
 		}
 		f()
 
