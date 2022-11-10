@@ -74,4 +74,4 @@ func (m *mockReconcileACLs) reconcileACLs(orig, target TopicConfig) (err error) 
 
 var _ reconcileACLs = (*mockReconcileACLs)(nil)
 
-// end mockGetTopicConfig
+// end mockReconcileACLs
