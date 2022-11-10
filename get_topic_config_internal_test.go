@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/bradfordwagner/go-kafka-dao/mocks/pkg/mock_sarama"
-	bwutil "github.com/bradfordwagner/go-util"
+	"github.com/bradfordwagner/go-util"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
