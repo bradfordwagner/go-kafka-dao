@@ -10,7 +10,7 @@ clean:
 	@rm -rf ./dist ./mocks
 
 test:
-	@go test ./...
+	@go test -coverprofile ./...
 
 d: dev
 i: install
