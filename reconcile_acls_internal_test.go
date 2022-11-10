@@ -37,7 +37,6 @@ var _ = Describe("ReconcileAcls", func() {
 		di.admin = bwutil.NewLockableWithValue[sarama.ClusterAdmin](admin)
 
 		// expect invocations
-		//admin.EXPECT().CreateACLs(gomock.Any()).AnyTimes()
 		admin.EXPECT().CreateACLs(bwutil.NewMatcherConversionExploderOneOf(r.acls, func(raArr []*sarama.ResourceAcls) (res []aclType) {
 			for _, ra := range raArr {
 				for _, acl := range ra.Acls {
